@@ -1,0 +1,224 @@
+<?!= include('head') ?>
+
+<body>
+
+  <?!= include('header') ?>
+
+  <main id="content">
+
+    <div class="gui-wrapper">
+
+      <h1 class="gui-titolo">Guida d'uso</h1>
+      <p class="gui-intro">
+        In questa pagina trovi tutte le informazioni necessarie per utilizzare il gestionale della biblioteca.
+      </p>
+
+      <!-- ─── 1. Introduzione ──────────────────────────────────── -->
+      <section class="gui-sezione">
+        <h3 class="gui-sezione__titolo">Introduzione — Come usare il sito</h3>
+        <p class="gui-sezione__testo">
+          L'accesso a questo sito è riservato agli utenti dell'Istituto Tal dei tali RIVEDERE
+          che hanno eseguito l'accesso al loro <strong>account istituzionale</strong>.<br><br>
+
+          L'app ha queste funzioni principali: consultare il catalogo dei libri, registrare prestiti
+          e restituzioni, gestire gli utenti che hanno libri in prestito e gestire il catalogo
+          (aggiungere, modificare ed eliminare libri).<br><br>
+
+          Le <strong>pagine si aprono tutte in una nuova scheda</strong> per impostazione di sicurezza.<br><br>
+
+          Alcune funzioni sono riservate all'account
+          <strong>RIVEDERE ACCOUNT ADMIN</strong>.
+          Altre sono aperte a tutti gli utenti.<br><br>
+
+          Per accedere all'app, assicurati di aver effettuato il login con un account Education.
+          Nel caso in cui sul tuo dispositivo siano loggati più utenti (es. account personale
+          e account scolastico), l'app potrebbe impedirti l'accesso. In tal caso, ti basterà
+          aprire una <strong>scheda di navigazione anonima</strong> e accedere con l'account Education.
+        </p>
+      </section>
+
+      <!-- ─── 2. Catalogo ──────────────────────────────────────── -->
+      <section class="gui-sezione">
+        <h3 class="gui-sezione__titolo">Catalogo</h3>
+        <p class="gui-sezione__testo">
+          La sezione <strong>Catalogo</strong> è liberamente consultabile da tutti gli utenti.<br><br>
+
+          Apri la pagina e inserisci il <strong>titolo o l'autore</strong> del libro che ti interessa:
+          si aprirà un menù a tendina con i risultati corrispondenti.<br>
+          Clicca sul risultato per vedere la scheda completa del libro, con etichetta, scaffale
+          e stato del prestito.
+        </p>
+      </section>
+
+      <!-- ─── 3. Prestiti ──────────────────────────────────────── -->
+      <section class="gui-sezione">
+        <h3 class="gui-sezione__titolo">Prestiti</h3>
+        <p class="gui-sezione__testo">
+          La sezione <strong>Prestiti</strong> permette di dare un libro in prestito a un utente.<br><br>
+
+          Inserisci l'<strong>etichetta o il titolo</strong> del libro: compariranno solo i libri
+          che non sono già in prestito.<br>
+          Clicca sul libro giusto per aprire il form.<br><br>
+
+          Compila i campi:<br>
+          — seleziona la <strong>classe</strong> dal menù a tendina<br>
+          — seleziona il <strong>numero dell'utente</strong> (controlla sul registro cartaceo
+          in biblioteca per la corrispondenza tra numero e nome)<br>
+          — scegli il <strong>tipo di prestito</strong>: breve, standard o lungo<br>
+          — aggiungi una <strong>nota</strong> se necessario<br><br>
+
+          Clicca sul pulsante per registrare il prestito.
+        </p>
+      </section>
+
+      <!-- ─── 4. Restituzione ──────────────────────────────────── -->
+      <section class="gui-sezione">
+        <h3 class="gui-sezione__titolo">Restituzione</h3>
+        <p class="gui-sezione__testo">
+          La sezione <strong>Restituzione</strong> permette di registrare la restituzione di un libro.<br><br>
+
+          Inserisci l'<strong>etichetta o il titolo</strong> del libro: compariranno solo i libri
+          attualmente in prestito.<br>
+          Clicca sul libro giusto per aprire la scheda.<br><br>
+
+          Se necessario, <strong>modifica la nota</strong> prima di confermare.<br>
+          Clicca sul pulsante per registrare la restituzione.
+        </p>
+      </section>
+
+      <!-- ─── 5. Gestione utenti ───────────────────────────────── -->
+      <section class="gui-sezione">
+        <h3 class="gui-sezione__titolo">Gestione utenti</h3>
+        <p class="gui-sezione__testo">
+          Questa sezione mostra quali utenti hanno attualmente <strong>uno o più libri in prestito</strong>,
+          raggruppati per codice utente e ordinati alfabeticamente.<br><br>
+
+          Per ogni libro sono indicati l'etichetta, il titolo, la data del prestito
+          e i giorni trascorsi.<br><br>
+
+          Usa il pulsante <strong>"Mostra solo prestiti scaduti"</strong> per filtrare
+          e vedere subito i libri che non sono stati restituiti in tempo.
+          Il pulsante cambia etichetta in <strong>"Mostra tutti i prestiti"</strong>
+          per tornare alla vista completa.
+        </p>
+      </section>
+
+      <!-- ─── 6. Gestione libri (riservata) ───────────────────── -->
+      <section class="gui-sezione">
+        <h3 class="gui-sezione__titolo">Gestione libri <span class="gui-badge">riservata</span></h3>
+        <p class="gui-sezione__testo">
+          Questa sezione è riservata all'<strong>account della biblioteca</strong>
+          e permette di modificare il database dei libri.<br><br>
+
+          Le operazioni disponibili sono tre:<br>
+          — <strong>Inserisci</strong>: aggiunge un nuovo titolo al catalogo<br>
+          — <strong>Modifica</strong>: aggiorna i dati di un libro esistente<br>
+          — <strong>Elimina</strong>: rimuove definitivamente un titolo
+          (i libri attualmente in prestito non possono essere eliminati)<br><br>
+
+          <strong>Le modifiche sono permanenti: procedi con accuratezza.</strong><br><br>
+
+          Quando si inserisce un nuovo libro, è opportuno seguire la convenzione per le etichette:
+          <strong>scaffale (numero) + prime tre lettere del cognome dell'autore + numero progressivo</strong>
+          (es. <strong>86MON01</strong>).<br>
+          Nel caso di più copie dello stesso libro o di inserimenti tra titoli già esistenti,
+          aggiungi una <strong>lettera minuscola</strong> in fondo all'etichetta (es. <strong>86MON01b</strong>).
+        </p>
+      </section>
+
+      <!-- ─── 7. Impostazioni (riservata) ─────────────────────── -->
+      <section class="gui-sezione">
+        <h3 class="gui-sezione__titolo">Impostazioni <span class="gui-badge">riservata</span></h3>
+        <p class="gui-sezione__testo">
+          Questa sezione è riservata all'<strong>account della biblioteca</strong>.<br><br>
+
+          <strong>A settembre di ogni anno</strong> è necessario aggiornare l'anno scolastico
+          (es. per l'anno 2026/2027 inserire <strong>2026</strong>) e non modificarlo nel corso dell'anno.<br><br>
+
+          Da qui è possibile:<br>
+          — configurare le <strong>classi</strong> con nome e numero di alunni<br>
+          — impostare la <strong>durata in giorni</strong> delle tre tipologie di prestito
+          (breve, standard, lungo)<br>
+          — creare e gestire gli <strong>scaffali</strong> della biblioteca<br><br>
+
+          Nel caso in cui nel corso dell'anno si aggiunga un alunno a una classe,
+          questi prenderà l'<strong>ultimo numero disponibile</strong>, indipendentemente
+          dalla posizione nel registro di classe. Tieni nota di queste aggiunte
+          sul <strong>registro cartaceo</strong> in biblioteca.<br><br>
+
+          <strong>Ricordati di salvare sempre le modifiche prima di uscire dalla pagina.</strong>
+        </p>
+      </section>
+
+    </div>
+
+  </main>
+
+  <?!= include('footer') ?>
+
+  <style>
+    /* ─── Guida — layout ──────────────────────────────────────── */
+    .gui-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .gui-titolo {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .gui-intro {
+      font-size: var(--text-base);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-lg);
+      line-height: 1.7;
+    }
+
+    /* ─── Sezioni ─────────────────────────────────────────────── */
+    .gui-sezione {
+      margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-lg);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .gui-sezione:last-child {
+      border-bottom: none;
+    }
+
+    .gui-sezione__titolo {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--color-brand);
+      margin-bottom: var(--space-sm);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .gui-sezione__testo {
+      font-size: var(--text-base);
+      color: var(--color-text-secondary);
+      line-height: 1.75;
+    }
+
+    /* ─── Badge riservata ─────────────────────────────────────── */
+    .gui-badge {
+      font-family: var(--font-ui);
+      font-size: var(--text-xs);
+      font-weight: 700;
+      color: var(--color-text-muted);
+      background: var(--color-surface-alt);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 2px var(--space-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+  </style>
+
+  <?!= include('script') ?>
+
+</body>

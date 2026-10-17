@@ -1,0 +1,742 @@
+<?!= include('head') ?>
+
+<body>
+
+  <?!= include('header') ?>
+
+  <main id="content">
+
+    <div class="pre-wrapper">
+
+      <h1 class="pre-titolo">Prestiti</h1>
+
+      <!-- ─── Ricerca libro per etichetta ─────────────────────── -->
+      <section class="pre-sezione">
+        <h2 class="pre-sezione__titolo">Cerca libro</h2>
+        <p class="pre-sezione__desc">Digita l'etichetta del libro da prestare.</p>
+
+        <div class="autocomplete" id="autocomplete-wrapper">
+          <input
+            type="text"
+            id="campo-etichetta"
+            class="pre-input"
+            placeholder="es. 86MON01"
+            autocomplete="off"
+            aria-label="Etichetta del libro"
+            aria-autocomplete="list"
+            aria-controls="lista-suggerimenti"
+            aria-expanded="false"
+          />
+          <ul
+            id="lista-suggerimenti"
+            class="autocomplete__lista"
+            role="listbox"
+            aria-label="Suggerimenti"
+          ></ul>
+        </div>
+      </section>
+
+      <!-- ─── Scheda libro selezionato ────────────────────────── -->
+      <div id="scheda-libro" class="pre-scheda pre-scheda--nascosta">
+        <div class="pre-scheda__intestazione">
+          <span class="pre-scheda__etichetta" id="scheda-etichetta-label"></span>
+          <button class="pre-scheda__chiudi" id="btn-chiudi-scheda" aria-label="Chiudi scheda">✕</button>
+        </div>
+        <h2 class="pre-scheda__titolo" id="scheda-titolo"></h2>
+        <p  class="pre-scheda__autore" id="scheda-autore"></p>
+      </div>
+
+      <!-- ─── Form prestito ────────────────────────────────────── -->
+      <section class="pre-sezione pre-sezione--form pre-sezione--nascosta" id="sezione-form">
+        <h2 class="pre-sezione__titolo">Dati del prestito</h2>
+
+        <div class="pre-form">
+
+          <!-- Tipo prestito -->
+          <div class="pre-campo">
+            <label class="pre-label" for="campo-tipo-prestito">Tipo prestito</label>
+            <select id="campo-tipo-prestito" class="pre-select" aria-label="Tipo prestito">
+              <option value="breve"    id="opt-breve">Prestito breve</option>
+              <option value="standard" id="opt-standard" selected>Prestito standard</option>
+              <option value="lungo"    id="opt-lungo">Prestito lungo</option>
+            </select>
+          </div>
+
+          <!-- Data prestito -->
+          <div class="pre-campo">
+            <label class="pre-label" for="campo-data">Data prestito</label>
+            <input
+              type="date"
+              id="campo-data"
+              class="pre-input pre-input--data"
+              aria-label="Data prestito"
+            />
+          </div>
+
+          <!-- Classe -->
+          <div class="pre-campo">
+            <label class="pre-label" for="campo-classe">Classe</label>
+            <select id="campo-classe" class="pre-select" aria-label="Classe">
+              <option value="">— seleziona —</option>
+            </select>
+          </div>
+
+          <!-- Numero alunno -->
+          <div class="pre-campo">
+            <label class="pre-label" for="campo-alunno">Numero alunno</label>
+            <select id="campo-alunno" class="pre-select" aria-label="Numero alunno" disabled>
+              <option value="">— seleziona prima la classe —</option>
+            </select>
+          </div>
+
+          <!-- Note -->
+          <div class="pre-campo pre-campo--full">
+            <label class="pre-label" for="campo-note">Note <span class="pre-label__opz">(opzionale)</span></label>
+            <textarea
+              id="campo-note"
+              class="pre-textarea"
+              rows="2"
+              placeholder="Eventuali annotazioni…"
+              aria-label="Note"
+            ></textarea>
+          </div>
+
+        </div>
+
+        <!-- Azioni -->
+        <div class="pre-azioni">
+          <button class="pre-btn pre-btn--primario" id="btn-registra">
+            Registra prestito
+          </button>
+          <span class="pre-feedback" id="pre-feedback" aria-live="polite"></span>
+        </div>
+
+      </section>
+
+    </div> <!-- fine pre-wrapper -->
+
+  </main>
+
+  <?!= include('footer') ?>
+
+  <!-- Dati iniettati server-side -->
+  <script>
+    var LIBRI_DISPONIBILI = <?!= JSON.stringify(datiPrestiti.libri) ?>;
+    var CLASSI            = <?!= JSON.stringify(datiPrestiti.classi) ?>;
+    var DURATE            = <?!= JSON.stringify(datiPrestiti.durate) ?>;
+    var ANNO_SCOLASTICO   = <?!= JSON.stringify(datiPrestiti.anno) ?>;
+  </script>
+
+  <style>
+    /* ─── Prestiti — layout ───────────────────────────────────── */
+    .pre-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .pre-titolo {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-md);
+    }
+
+    .pre-sezione {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-md);
+    }
+
+    .pre-sezione--nascosta {
+      display: none;
+    }
+
+    .pre-sezione__titolo {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .pre-sezione__desc {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-md);
+    }
+
+    /* ─── Autocomplete ────────────────────────────────────────── */
+    .autocomplete {
+      position: relative;
+      max-width: 320px;
+    }
+
+    .autocomplete__lista {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+      list-style: none;
+      max-height: 280px;
+      overflow-y: auto;
+      z-index: 200;
+      display: none;
+    }
+
+    .autocomplete__lista--visibile {
+      display: block;
+    }
+
+    .autocomplete__voce {
+      padding: var(--space-xs) var(--space-md);
+      font-size: var(--text-sm);
+      color: var(--color-text-primary);
+      cursor: pointer;
+      border-bottom: 1px solid var(--color-border);
+      line-height: 1.5;
+    }
+
+    .autocomplete__voce:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete__voce:hover,
+    .autocomplete__voce--attiva {
+      background: var(--color-brand-light);
+      color: var(--color-brand);
+    }
+
+    .autocomplete__voce-etichetta {
+      display: block;
+      font-weight: 700;
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-text-muted);
+    }
+
+    .autocomplete__voce-titolo {
+      display: block;
+      font-weight: 600;
+    }
+
+    .autocomplete__voce-autore {
+      display: block;
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+
+    .autocomplete__em {
+      background: #fff3cd;
+      border-radius: 2px;
+      font-style: normal;
+    }
+
+    /* ─── Scheda libro selezionato ────────────────────────────── */
+    .pre-scheda {
+      background: var(--color-brand-light);
+      border: 1px solid var(--color-border);
+      border-left: 4px solid var(--color-brand);
+      border-radius: var(--radius-md);
+      padding: var(--space-md);
+      margin-bottom: var(--space-md);
+    }
+
+    .pre-scheda--nascosta {
+      display: none;
+    }
+
+    .pre-scheda__intestazione {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-xs);
+    }
+
+    .pre-scheda__etichetta {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .pre-scheda__chiudi {
+      background: none;
+      border: none;
+      font-size: var(--text-base);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      padding: 2px var(--space-xs);
+      border-radius: var(--radius-sm);
+      line-height: 1;
+    }
+
+    .pre-scheda__chiudi:hover {
+      background: var(--color-surface-alt);
+      color: var(--color-text-primary);
+    }
+
+    .pre-scheda__titolo {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: 2px;
+    }
+
+    .pre-scheda__autore {
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+    }
+
+    /* ─── Form ────────────────────────────────────────────────── */
+    .pre-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+
+    @media (max-width: 600px) {
+      .pre-form {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .pre-campo {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .pre-campo--full {
+      grid-column: 1 / -1;
+    }
+
+    .pre-label {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+
+    .pre-label__opz {
+      font-weight: 400;
+      color: var(--color-text-muted);
+    }
+
+    .pre-input,
+    .pre-select,
+    .pre-textarea {
+      padding: var(--space-xs) var(--space-sm);
+      font-family: var(--font-ui);
+      font-size: var(--text-base);
+      color: var(--color-text-primary);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      width: 100%;
+    }
+
+    .pre-input:focus,
+    .pre-select:focus,
+    .pre-textarea:focus {
+      border-color: var(--color-border-focus);
+      box-shadow: var(--shadow-focus);
+    }
+
+    .pre-select:disabled {
+      background: var(--color-surface-alt);
+      color: var(--color-text-muted);
+      cursor: not-allowed;
+    }
+
+    .pre-input--data {
+      max-width: 200px;
+    }
+
+    .pre-textarea {
+      resize: vertical;
+      min-height: 64px;
+    }
+
+    /* ─── Azioni ──────────────────────────────────────────────── */
+    .pre-azioni {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .pre-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: var(--space-xs) var(--space-lg);
+      font-family: var(--font-ui);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+      outline: none;
+    }
+
+    .pre-btn:focus-visible {
+      box-shadow: var(--shadow-focus);
+    }
+
+    .pre-btn--primario {
+      background: var(--color-action-success);
+      color: var(--color-text-on-brand);
+    }
+
+    .pre-btn--primario:hover {
+      background: var(--color-action-success-hover);
+    }
+
+    .pre-btn--primario:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .pre-feedback {
+      font-size: var(--text-sm);
+      font-weight: 600;
+    }
+
+    .pre-feedback--ok {
+      color: var(--color-action-success);
+    }
+
+    .pre-feedback--errore {
+      color: var(--color-action-danger);
+    }
+  </style>
+
+  <?!= include('script') ?>
+
+  <script>
+  /* ═══════════════════════════════════════════════════════════════════
+     prestiti.html — JavaScript lato client
+  ════════════════════════════════════════════════════════════════════ */
+
+  (function () {
+    'use strict';
+
+    /* ─── Riferimenti DOM ─────────────────────────────────────── */
+    var campoEtichetta    = document.getElementById('campo-etichetta');
+    var listaSuggerimenti = document.getElementById('lista-suggerimenti');
+    var schedaLibro       = document.getElementById('scheda-libro');
+    var schedaEtichetta   = document.getElementById('scheda-etichetta-label');
+    var schedaTitolo      = document.getElementById('scheda-titolo');
+    var schedaAutore      = document.getElementById('scheda-autore');
+    var btnChiudiScheda   = document.getElementById('btn-chiudi-scheda');
+    var sezioneForm       = document.getElementById('sezione-form');
+    var campoDurata       = document.getElementById('campo-tipo-prestito');
+    var campoData         = document.getElementById('campo-data');
+    var campoClasse       = document.getElementById('campo-classe');
+    var campoAlunno       = document.getElementById('campo-alunno');
+    var campoNote         = document.getElementById('campo-note');
+    var btnRegistra       = document.getElementById('btn-registra');
+    var feedback          = document.getElementById('pre-feedback');
+
+    var indiceAttivo  = -1;
+    var libroSelezionato = null;
+
+    /* ─── Inizializzazione ────────────────────────────────────── */
+    function inizializza() {
+      /* Data odierna come default */
+      var oggi = new Date();
+      var aaaa = oggi.getFullYear();
+      var mm   = String(oggi.getMonth() + 1).padStart(2, '0');
+      var gg   = String(oggi.getDate()).padStart(2, '0');
+      campoData.value = aaaa + '-' + mm + '-' + gg;
+
+      /* Etichette durate nelle opzioni */
+      var d = DURATE || {};
+      document.getElementById('opt-breve').textContent    = 'Prestito breve'    + (d.breve    ? ' (' + d.breve    + ' gg)' : '');
+      document.getElementById('opt-standard').textContent = 'Prestito standard' + (d.standard ? ' (' + d.standard + ' gg)' : '');
+      document.getElementById('opt-lungo').textContent    = 'Prestito lungo'    + (d.lungo    ? ' (' + d.lungo    + ' gg)' : '');
+
+      /* Popola tendina classi */
+      var classi = CLASSI || [];
+      for (var i = 0; i < classi.length; i++) {
+        var opt = document.createElement('option');
+        opt.value       = classi[i].nome;
+        opt.textContent = classi[i].nome;
+        opt.dataset.alunni = classi[i].alunni;
+        campoClasse.appendChild(opt);
+      }
+    }
+
+    /* ─── Aggiorna tendina alunni al cambio classe ────────────── */
+    campoClasse.addEventListener('change', function () {
+      var selected = campoClasse.options[campoClasse.selectedIndex];
+      var numAlunni = parseInt(selected.dataset.alunni, 10) || 0;
+
+      campoAlunno.innerHTML = '';
+
+      if (!selected.value) {
+        campoAlunno.innerHTML = '<option value="">— seleziona prima la classe —</option>';
+        campoAlunno.disabled = true;
+        return;
+      }
+
+      var optDefault = document.createElement('option');
+      optDefault.value = '';
+      optDefault.textContent = '— seleziona —';
+      campoAlunno.appendChild(optDefault);
+
+      for (var i = 1; i <= numAlunni; i++) {
+        var opt = document.createElement('option');
+        opt.value       = String(i).padStart(2, '0');
+        opt.textContent = i;
+        campoAlunno.appendChild(opt);
+      }
+
+      campoAlunno.disabled = false;
+    });
+
+    /* ─── Utilità ─────────────────────────────────────────────── */
+    function escHTML(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function evidenzia(testo, query) {
+      if (!query) return escHTML(testo);
+      var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      return escHTML(testo).replace(re, '<em class="autocomplete__em">$1</em>');
+    }
+
+    /* ─── Filtra libri disponibili ────────────────────────────── */
+    function filtra(query) {
+      var q = query.trim().toLowerCase();
+      if (!q) return [];
+      var risultati = [];
+      for (var i = 0; i < LIBRI_DISPONIBILI.length; i++) {
+        var libro = LIBRI_DISPONIBILI[i];
+        if (libro.etichetta.toLowerCase().indexOf(q) !== -1 ||
+            libro.titolo.toLowerCase().indexOf(q) !== -1) {
+          risultati.push(libro);
+          if (risultati.length >= 30) break;
+        }
+      }
+      return risultati;
+    }
+
+    /* ─── Renderizza tendina ──────────────────────────────────── */
+    function renderTendina(risultati, query) {
+      listaSuggerimenti.innerHTML = '';
+      indiceAttivo = -1;
+
+      if (risultati.length === 0) {
+        nascondiTendina();
+        return;
+      }
+
+      var frammento = document.createDocumentFragment();
+      for (var i = 0; i < risultati.length; i++) {
+        (function (libro) {
+          var li = document.createElement('li');
+          li.className = 'autocomplete__voce';
+          li.setAttribute('role', 'option');
+          li.setAttribute('aria-selected', 'false');
+
+          li.innerHTML =
+            '<span class="autocomplete__voce-etichetta">' + evidenzia(libro.etichetta, query) + '</span>' +
+            '<span class="autocomplete__voce-titolo">'    + escHTML(libro.titolo) + '</span>' +
+            '<span class="autocomplete__voce-autore">'    + escHTML(libro.autore) + '</span>';
+
+          li.addEventListener('mousedown', function (ev) {
+            ev.preventDefault();
+            selezionaLibro(libro);
+          });
+
+          frammento.appendChild(li);
+        })(risultati[i]);
+      }
+
+      listaSuggerimenti.appendChild(frammento);
+      mostraTendina();
+    }
+
+    function mostraTendina() {
+      listaSuggerimenti.classList.add('autocomplete__lista--visibile');
+      campoEtichetta.setAttribute('aria-expanded', 'true');
+    }
+
+    function nascondiTendina() {
+      listaSuggerimenti.classList.remove('autocomplete__lista--visibile');
+      campoEtichetta.setAttribute('aria-expanded', 'false');
+      indiceAttivo = -1;
+    }
+
+    function aggiornaVoceAttiva(nuovoIndice) {
+      var voci = listaSuggerimenti.querySelectorAll('.autocomplete__voce');
+      if (voci[indiceAttivo]) {
+        voci[indiceAttivo].classList.remove('autocomplete__voce--attiva');
+        voci[indiceAttivo].setAttribute('aria-selected', 'false');
+      }
+      indiceAttivo = nuovoIndice;
+      if (voci[indiceAttivo]) {
+        voci[indiceAttivo].classList.add('autocomplete__voce--attiva');
+        voci[indiceAttivo].setAttribute('aria-selected', 'true');
+        voci[indiceAttivo].scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    /* ─── Seleziona libro ─────────────────────────────────────── */
+    function selezionaLibro(libro) {
+      libroSelezionato = libro;
+      campoEtichetta.value = libro.etichetta;
+      nascondiTendina();
+
+      /* Mostra scheda */
+      schedaEtichetta.textContent = 'Etichetta: ' + libro.etichetta;
+      schedaTitolo.textContent    = libro.titolo + (libro.volume ? ' — vol. ' + libro.volume : '');
+      schedaAutore.textContent    = libro.autore + (libro.coautore ? ' / ' + libro.coautore : '');
+      schedaLibro.classList.remove('pre-scheda--nascosta');
+
+      /* Mostra form */
+      sezioneForm.classList.remove('pre-sezione--nascosta');
+
+      /* Reset form */
+      campoClasse.selectedIndex = 0;
+      campoAlunno.innerHTML = '<option value="">— seleziona prima la classe —</option>';
+      campoAlunno.disabled  = true;
+      campoNote.value = '';
+      feedback.textContent = '';
+      feedback.className   = 'pre-feedback';
+    }
+
+    /* ─── Reset completo ──────────────────────────────────────── */
+    function reset() {
+      libroSelezionato = null;
+      campoEtichetta.value = '';
+      schedaLibro.classList.add('pre-scheda--nascosta');
+      sezioneForm.classList.add('pre-sezione--nascosta');
+      feedback.textContent = '';
+      feedback.className   = 'pre-feedback';
+      campoEtichetta.focus();
+    }
+
+    btnChiudiScheda.addEventListener('click', reset);
+
+    /* ─── Event listener campo ricerca ───────────────────────── */
+    campoEtichetta.addEventListener('input', function () {
+      var query = campoEtichetta.value;
+      if (query.trim().length === 0) {
+        nascondiTendina();
+        return;
+      }
+      renderTendina(filtra(query), query.trim());
+    });
+
+    campoEtichetta.addEventListener('keydown', function (ev) {
+      var voci = listaSuggerimenti.querySelectorAll('.autocomplete__voce');
+      var visibile = listaSuggerimenti.classList.contains('autocomplete__lista--visibile');
+      if (!visibile) return;
+
+      if (ev.key === 'ArrowDown') {
+        ev.preventDefault();
+        aggiornaVoceAttiva(Math.min(indiceAttivo + 1, voci.length - 1));
+      } else if (ev.key === 'ArrowUp') {
+        ev.preventDefault();
+        aggiornaVoceAttiva(Math.max(indiceAttivo - 1, 0));
+      } else if (ev.key === 'Enter') {
+        ev.preventDefault();
+        if (indiceAttivo >= 0 && voci[indiceAttivo]) {
+          voci[indiceAttivo].dispatchEvent(new MouseEvent('mousedown'));
+        }
+      } else if (ev.key === 'Escape') {
+        nascondiTendina();
+      }
+    });
+
+    campoEtichetta.addEventListener('blur', function () {
+      setTimeout(nascondiTendina, 150);
+    });
+
+    /* ─── Registra prestito ───────────────────────────────────── */
+    btnRegistra.addEventListener('click', function () {
+      if (!libroSelezionato) return;
+
+      /* Validazione */
+      var data    = campoData.value;
+      var classe  = campoClasse.value;
+      var alunno  = campoAlunno.value;
+      var tipo    = campoDurata.value;
+      var note    = campoNote.value.trim();
+
+      if (!data) {
+        mostraFeedback(false, 'Inserisci la data del prestito.');
+        return;
+      }
+      if (!classe) {
+        mostraFeedback(false, 'Seleziona la classe.');
+        return;
+      }
+      if (!alunno) {
+        mostraFeedback(false, 'Seleziona il numero alunno.');
+        return;
+      }
+
+      /* Compone il codice utente: anno-classe-numero */
+      var utente = ANNO_SCOLASTICO + '-' + classe + '-' + alunno;
+
+      btnRegistra.disabled = true;
+      mostraFeedback(null, 'Registrazione in corso…');
+
+      google.script.run
+        .withSuccessHandler(function (risultato) {
+          btnRegistra.disabled = false;
+          if (risultato.ok) {
+            mostraFeedback(true, '✓ Prestito registrato per ' + utente + '.');
+            /* Rimuove il libro dall'array locale così non ricompare */
+            LIBRI_DISPONIBILI = LIBRI_DISPONIBILI.filter(function (l) {
+              return l.etichetta !== libroSelezionato.etichetta;
+            });
+            setTimeout(reset, 1800);
+          } else {
+            mostraFeedback(false, risultato.errore || 'Errore durante la registrazione.');
+          }
+        })
+        .withFailureHandler(function () {
+          btnRegistra.disabled = false;
+          mostraFeedback(false, 'Errore di comunicazione con il server.');
+        })
+        .registraPrestito({
+          etichetta: libroSelezionato.etichetta,
+          data:      data,
+          utente:    utente,
+          tipo:      tipo,
+          note:      note
+        });
+    });
+
+    /* ─── Feedback ────────────────────────────────────────────── */
+    function mostraFeedback(ok, messaggio) {
+      feedback.textContent = messaggio;
+      if (ok === true)  feedback.className = 'pre-feedback pre-feedback--ok';
+      else if (ok === false) feedback.className = 'pre-feedback pre-feedback--errore';
+      else feedback.className = 'pre-feedback';
+    }
+
+    /* ─── Avvio ───────────────────────────────────────────────── */
+    inizializza();
+
+  })();
+  </script>
+
+</body>

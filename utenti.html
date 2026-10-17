@@ -1,0 +1,405 @@
+<?!= include('head') ?>
+
+<body>
+
+  <?!= include('header') ?>
+
+  <main id="content">
+
+    <div class="utn-wrapper">
+
+      <h1 class="utn-titolo">Utenti con prestiti attivi</h1>
+      <p class="utn-desc">
+        Elenco degli utenti che hanno attualmente uno o più libri in prestito,
+        ordinati per codice utente. La corrispondenza codice-alunno è sul registro cartaceo in biblioteca.
+      </p>
+
+      <!-- ─── Barra controlli ──────────────────────────────────── -->
+      <div class="utn-barra">
+        <span class="utn-contatore" id="utn-contatore" aria-live="polite"></span>
+        <button class="utn-toggle" id="btn-toggle-scaduti">
+          Mostra solo prestiti scaduti
+        </button>
+      </div>
+
+      <!-- ─── Lista utenti ─────────────────────────────────────── -->
+      <div id="lista-utenti" class="utn-lista"></div>
+
+    </div>
+
+  </main>
+
+  <?!= include('footer') ?>
+
+  <!-- Dati iniettati server-side -->
+  <script>
+    var DATI_UTENTI = <?!= JSON.stringify(datiUtenti.prestiti) ?>;
+    var DURATE_UTN  = <?!= JSON.stringify(datiUtenti.durate) ?>;
+  </script>
+
+  <style>
+    /* ─── Utenti — layout ─────────────────────────────────────── */
+    .utn-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .utn-titolo {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .utn-desc {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-lg);
+      line-height: 1.6;
+    }
+
+    /* ─── Barra controlli ─────────────────────────────────────── */
+    .utn-barra {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      margin-bottom: var(--space-md);
+      flex-wrap: wrap;
+    }
+
+    .utn-contatore {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+    }
+
+    .utn-toggle {
+      padding: var(--space-xs) var(--space-md);
+      font-family: var(--font-ui);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-brand);
+      background: var(--color-brand-light);
+      border: 1px solid var(--color-brand);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      outline: none;
+      white-space: nowrap;
+    }
+
+    .utn-toggle:hover {
+      background: var(--color-brand);
+      color: var(--color-text-on-brand);
+    }
+
+    .utn-toggle:focus-visible {
+      box-shadow: var(--shadow-focus);
+    }
+
+    .utn-toggle--attivo {
+      background: var(--color-action-warning);
+      color: var(--color-text-on-brand);
+      border-color: var(--color-action-warning);
+    }
+
+    .utn-toggle--attivo:hover {
+      background: var(--color-action-warning-hover);
+      border-color: var(--color-action-warning-hover);
+    }
+
+    /* ─── Messaggio vuoto ─────────────────────────────────────── */
+    .utn-vuoto {
+      text-align: center;
+      padding: var(--space-xl);
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+    }
+
+    /* ─── Card utente ─────────────────────────────────────────── */
+    .utn-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      margin-bottom: var(--space-md);
+      overflow: hidden;
+    }
+
+    .utn-card__intestazione {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-sm) var(--space-md);
+      background: var(--color-surface-alt);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .utn-card__utente {
+      font-size: var(--text-base);
+      font-weight: 700;
+      color: var(--color-brand);
+      font-family: monospace;
+      letter-spacing: 0.04em;
+    }
+
+    .utn-card__num-libri {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+
+    /* ─── Righe libro ─────────────────────────────────────────── */
+    .utn-libro {
+      display: grid;
+      grid-template-columns: 100px 1fr auto;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      border-bottom: 1px solid var(--color-border);
+      font-size: var(--text-sm);
+    }
+
+    .utn-libro:last-child {
+      border-bottom: none;
+    }
+
+    .utn-libro--scaduto {
+      background: #fff8f0;
+    }
+
+    .utn-libro__etichetta {
+      font-weight: 700;
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    .utn-libro__titolo {
+      color: var(--color-text-primary);
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .utn-libro__data-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      white-space: nowrap;
+    }
+
+    .utn-libro__data {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+
+    .utn-libro__giorni {
+      font-size: var(--text-xs);
+      font-weight: 700;
+    }
+
+    .utn-libro__giorni--ok {
+      color: var(--color-action-success);
+    }
+
+    .utn-libro__giorni--scaduto {
+      color: var(--color-action-warning);
+    }
+
+    .utn-libro__badge-scaduto {
+      display: inline-block;
+      font-size: var(--text-xs);
+      font-weight: 700;
+      background: #fff3e0;
+      color: var(--color-action-warning);
+      border: 1px solid #ffe0b2;
+      border-radius: var(--radius-sm);
+      padding: 1px 5px;
+    }
+
+    @media (max-width: 600px) {
+      .utn-libro {
+        grid-template-columns: 80px 1fr;
+      }
+      .utn-libro__data-wrap {
+        grid-column: 1 / -1;
+        align-items: flex-start;
+        flex-direction: row;
+        gap: var(--space-sm);
+      }
+    }
+  </style>
+
+  <?!= include('script') ?>
+
+  <script>
+  /* ═══════════════════════════════════════════════════════════════════
+     utenti.html — JavaScript lato client
+  ════════════════════════════════════════════════════════════════════ */
+
+  (function () {
+    'use strict';
+
+    var btnToggle    = document.getElementById('btn-toggle-scaduti');
+    var listaUtenti  = document.getElementById('lista-utenti');
+    var contatore    = document.getElementById('utn-contatore');
+    var soloScaduti  = false;
+
+    /* ─── Calcola giorni trascorsi dalla data prestito ────────── */
+    function giorniTrascorsi(dataStr) {
+      if (!dataStr) return 0;
+      var oggi    = new Date();
+      var dataPre = new Date(dataStr);
+      oggi.setHours(0, 0, 0, 0);
+      dataPre.setHours(0, 0, 0, 0);
+      return Math.floor((oggi - dataPre) / (1000 * 60 * 60 * 24));
+    }
+
+    /* ─── Durata in giorni per tipo prestito ──────────────────── */
+    function durataGiorni(tipo) {
+      var d = DURATE_UTN || {};
+      if (tipo === 'breve')    return d.breve    || 0;
+      if (tipo === 'standard') return d.standard || 0;
+      if (tipo === 'lungo')    return d.lungo    || 0;
+      return 0;
+    }
+
+    /* ─── Formatta data per la visualizzazione ────────────────── */
+    function formattaData(dataStr) {
+      if (!dataStr) return '—';
+      var d = new Date(dataStr);
+      if (isNaN(d.getTime())) return dataStr;
+      return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    /* ─── Raggruppa libri per utente ──────────────────────────── */
+    function raggruppaPerUtente(dati) {
+      var mappa = {};
+      for (var i = 0; i < dati.length; i++) {
+        var libro = dati[i];
+        var u     = libro.utente || '(sconosciuto)';
+        if (!mappa[u]) mappa[u] = [];
+
+        var giorni  = giorniTrascorsi(libro.dataPrestito);
+        var durata  = durataGiorni(libro.tipo);
+        var scaduto = durata > 0 && giorni > durata;
+
+        mappa[u].push({
+          etichetta:    libro.etichetta,
+          titolo:       libro.titolo,
+          dataPrestito: libro.dataPrestito,
+          giorni:       giorni,
+          durata:       durata,
+          scaduto:      scaduto
+        });
+      }
+      return mappa;
+    }
+
+    /* ─── Renderizza la lista ─────────────────────────────────── */
+    function render() {
+      listaUtenti.innerHTML = '';
+
+      var mappa   = raggruppaPerUtente(DATI_UTENTI);
+      var utenti  = Object.keys(mappa).sort();
+
+      /* Filtra se soloScaduti è attivo */
+      if (soloScaduti) {
+        utenti = utenti.filter(function (u) {
+          return mappa[u].some(function (l) { return l.scaduto; });
+        });
+      }
+
+      if (utenti.length === 0) {
+        listaUtenti.innerHTML =
+          '<p class="utn-vuoto">' +
+          (soloScaduti ? 'Nessun prestito scaduto.' : 'Nessun prestito attivo.') +
+          '</p>';
+        contatore.textContent = '';
+        return;
+      }
+
+      /* Contatore */
+      var totLibri = 0;
+      utenti.forEach(function (u) { totLibri += mappa[u].length; });
+      contatore.textContent =
+        utenti.length + (utenti.length === 1 ? ' utente' : ' utenti') +
+        ' · ' + totLibri + (totLibri === 1 ? ' libro' : ' libri');
+
+      /* Costruisci le card */
+      var frag = document.createDocumentFragment();
+
+      utenti.forEach(function (utente) {
+        var libri = mappa[utente];
+
+        /* Se soloScaduti, mostra solo i libri scaduti dentro la card */
+        if (soloScaduti) {
+          libri = libri.filter(function (l) { return l.scaduto; });
+        }
+
+        var card = document.createElement('div');
+        card.className = 'utn-card';
+
+        /* Intestazione card */
+        var intestazione = document.createElement('div');
+        intestazione.className = 'utn-card__intestazione';
+        intestazione.innerHTML =
+          '<span class="utn-card__utente">' + utente + '</span>' +
+          '<span class="utn-card__num-libri">' +
+          libri.length + (libri.length === 1 ? ' libro' : ' libri') +
+          '</span>';
+        card.appendChild(intestazione);
+
+        /* Righe libri */
+        libri.forEach(function (libro) {
+          var riga = document.createElement('div');
+          riga.className = 'utn-libro' + (libro.scaduto ? ' utn-libro--scaduto' : '');
+
+          var giorni  = libro.giorni;
+          var durata  = libro.durata;
+          var testoGiorni = giorni + (giorni === 1 ? ' giorno' : ' giorni');
+          var classeGiorni = libro.scaduto
+            ? 'utn-libro__giorni utn-libro__giorni--scaduto'
+            : 'utn-libro__giorni utn-libro__giorni--ok';
+
+          var badgeScaduto = libro.scaduto
+            ? '<span class="utn-libro__badge-scaduto">Scaduto</span>'
+            : '';
+
+          riga.innerHTML =
+            '<span class="utn-libro__etichetta">' + libro.etichetta + '</span>' +
+            '<span class="utn-libro__titolo">'    + libro.titolo    + '</span>' +
+            '<div class="utn-libro__data-wrap">' +
+              '<span class="utn-libro__data">' + formattaData(libro.dataPrestito) + '</span>' +
+              '<span class="' + classeGiorni + '">' + testoGiorni + '</span>' +
+              badgeScaduto +
+            '</div>';
+
+          card.appendChild(riga);
+        });
+
+        frag.appendChild(card);
+      });
+
+      listaUtenti.appendChild(frag);
+    }
+
+    /* ─── Toggle scaduti ──────────────────────────────────────── */
+    btnToggle.addEventListener('click', function () {
+      soloScaduti = !soloScaduti;
+      btnToggle.textContent = soloScaduti
+        ? 'Mostra tutti i prestiti'
+        : 'Mostra solo prestiti scaduti';
+      btnToggle.classList.toggle('utn-toggle--attivo', soloScaduti);
+      render();
+    });
+
+    /* ─── Avvio ───────────────────────────────────────────────── */
+    render();
+
+  })();
+  </script>
+
+</body>

@@ -1,0 +1,622 @@
+<?!= include('head') ?>
+
+<body>
+
+  <?!= include('header') ?>
+
+  <main id="content">
+
+    <div class="res-wrapper">
+
+      <h1 class="res-titolo">Restituzione</h1>
+
+      <!-- ─── Ricerca libro per etichetta ─────────────────────── -->
+      <section class="res-sezione">
+        <h2 class="res-sezione__titolo">Cerca libro</h2>
+        <p class="res-sezione__desc">Digita l'etichetta del libro da restituire.</p>
+
+        <div class="autocomplete" id="autocomplete-wrapper">
+          <input
+            type="text"
+            id="campo-etichetta"
+            class="res-input"
+            placeholder="es. 86MON01"
+            autocomplete="off"
+            aria-label="Etichetta del libro"
+            aria-autocomplete="list"
+            aria-controls="lista-suggerimenti"
+            aria-expanded="false"
+          />
+          <ul
+            id="lista-suggerimenti"
+            class="autocomplete__lista"
+            role="listbox"
+            aria-label="Suggerimenti"
+          ></ul>
+        </div>
+      </section>
+
+      <!-- ─── Scheda libro in prestito ────────────────────────── -->
+      <div id="scheda-libro" class="res-scheda res-scheda--nascosta">
+        <div class="res-scheda__intestazione">
+          <span class="res-scheda__etichetta" id="scheda-etichetta-label"></span>
+          <button class="res-scheda__chiudi" id="btn-chiudi-scheda" aria-label="Chiudi scheda">✕</button>
+        </div>
+        <h2 class="res-scheda__titolo"  id="scheda-titolo"></h2>
+        <p  class="res-scheda__autore"  id="scheda-autore"></p>
+
+        <dl class="res-scheda__dettagli">
+          <div class="res-scheda__riga">
+            <dt class="res-scheda__dt">In prestito a</dt>
+            <dd class="res-scheda__dd" id="scheda-utente"></dd>
+          </div>
+          <div class="res-scheda__riga">
+            <dt class="res-scheda__dt">Dal</dt>
+            <dd class="res-scheda__dd" id="scheda-data"></dd>
+          </div>
+          <div class="res-scheda__riga">
+            <dt class="res-scheda__dt">Tipo</dt>
+            <dd class="res-scheda__dd" id="scheda-tipo"></dd>
+          </div>
+        </dl>
+
+        <!-- Note modificabili -->
+        <div class="res-note">
+          <label class="res-label" for="campo-note">
+            Note <span class="res-label__opz">(opzionali — modificabili)</span>
+          </label>
+          <textarea
+            id="campo-note"
+            class="res-textarea"
+            rows="2"
+            placeholder="Eventuali annotazioni sul libro…"
+            aria-label="Note"
+          ></textarea>
+        </div>
+
+        <!-- Azioni -->
+        <div class="res-azioni">
+          <button class="res-btn res-btn--primario" id="btn-restituito">
+            ✓ Restituito
+          </button>
+          <span class="res-feedback" id="res-feedback" aria-live="polite"></span>
+        </div>
+      </div>
+
+    </div> <!-- fine res-wrapper -->
+
+  </main>
+
+  <?!= include('footer') ?>
+
+  <!-- Dati iniettati server-side -->
+  <script>
+    var LIBRI_IN_PRESTITO = <?!= JSON.stringify(datiRestituzione) ?>;
+  </script>
+
+  <style>
+    /* ─── Restituzione — layout ───────────────────────────────── */
+    .res-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .res-titolo {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-md);
+    }
+
+    .res-sezione {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-md);
+    }
+
+    .res-sezione__titolo {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .res-sezione__desc {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-md);
+    }
+
+    /* ─── Autocomplete ────────────────────────────────────────── */
+    .autocomplete {
+      position: relative;
+      max-width: 320px;
+    }
+
+    .autocomplete__lista {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+      list-style: none;
+      max-height: 280px;
+      overflow-y: auto;
+      z-index: 200;
+      display: none;
+    }
+
+    .autocomplete__lista--visibile {
+      display: block;
+    }
+
+    .autocomplete__voce {
+      padding: var(--space-xs) var(--space-md);
+      font-size: var(--text-sm);
+      color: var(--color-text-primary);
+      cursor: pointer;
+      border-bottom: 1px solid var(--color-border);
+      line-height: 1.5;
+    }
+
+    .autocomplete__voce:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete__voce:hover,
+    .autocomplete__voce--attiva {
+      background: var(--color-brand-light);
+      color: var(--color-brand);
+    }
+
+    .autocomplete__voce-etichetta {
+      display: block;
+      font-weight: 700;
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-text-muted);
+    }
+
+    .autocomplete__voce-titolo {
+      display: block;
+      font-weight: 600;
+    }
+
+    .autocomplete__voce-utente {
+      display: block;
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+
+    .autocomplete__em {
+      background: #fff3cd;
+      border-radius: 2px;
+      font-style: normal;
+    }
+
+    /* ─── Scheda libro ────────────────────────────────────────── */
+    .res-scheda {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-left: 4px solid var(--color-action-warning);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-md);
+    }
+
+    .res-scheda--nascosta {
+      display: none;
+    }
+
+    .res-scheda__intestazione {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-xs);
+    }
+
+    .res-scheda__etichetta {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .res-scheda__chiudi {
+      background: none;
+      border: none;
+      font-size: var(--text-base);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      padding: 2px var(--space-xs);
+      border-radius: var(--radius-sm);
+      line-height: 1;
+    }
+
+    .res-scheda__chiudi:hover {
+      background: var(--color-surface-alt);
+      color: var(--color-text-primary);
+    }
+
+    .res-scheda__titolo {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: 2px;
+    }
+
+    .res-scheda__autore {
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-md);
+    }
+
+    .res-scheda__dettagli {
+      display: grid;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-md);
+    }
+
+    .res-scheda__riga {
+      display: flex;
+      gap: var(--space-sm);
+      font-size: var(--text-sm);
+    }
+
+    .res-scheda__dt {
+      color: var(--color-text-muted);
+      min-width: 100px;
+      flex-shrink: 0;
+    }
+
+    .res-scheda__dd {
+      color: var(--color-text-primary);
+      font-weight: 600;
+    }
+
+    /* ─── Note ────────────────────────────────────────────────── */
+    .res-note {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-lg);
+    }
+
+    .res-label {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+
+    .res-label__opz {
+      font-weight: 400;
+      color: var(--color-text-muted);
+    }
+
+    .res-input,
+    .res-textarea {
+      padding: var(--space-xs) var(--space-sm);
+      font-family: var(--font-ui);
+      font-size: var(--text-base);
+      color: var(--color-text-primary);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      width: 100%;
+    }
+
+    .res-input:focus,
+    .res-textarea:focus {
+      border-color: var(--color-border-focus);
+      box-shadow: var(--shadow-focus);
+    }
+
+    .res-textarea {
+      resize: vertical;
+      min-height: 64px;
+    }
+
+    /* ─── Azioni ──────────────────────────────────────────────── */
+    .res-azioni {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .res-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: var(--space-xs) var(--space-lg);
+      font-family: var(--font-ui);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+      outline: none;
+    }
+
+    .res-btn:focus-visible {
+      box-shadow: var(--shadow-focus);
+    }
+
+    .res-btn--primario {
+      background: var(--color-action-success);
+      color: var(--color-text-on-brand);
+    }
+
+    .res-btn--primario:hover {
+      background: var(--color-action-success-hover);
+    }
+
+    .res-btn--primario:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .res-feedback {
+      font-size: var(--text-sm);
+      font-weight: 600;
+    }
+
+    .res-feedback--ok {
+      color: var(--color-action-success);
+    }
+
+    .res-feedback--errore {
+      color: var(--color-action-danger);
+    }
+  </style>
+
+  <?!= include('script') ?>
+
+  <script>
+  /* ═══════════════════════════════════════════════════════════════════
+     restituzione.html — JavaScript lato client
+  ════════════════════════════════════════════════════════════════════ */
+
+  (function () {
+    'use strict';
+
+    /* ─── Riferimenti DOM ─────────────────────────────────────── */
+    var campoEtichetta    = document.getElementById('campo-etichetta');
+    var listaSuggerimenti = document.getElementById('lista-suggerimenti');
+    var schedaLibro       = document.getElementById('scheda-libro');
+    var btnChiudiScheda   = document.getElementById('btn-chiudi-scheda');
+    var campoNote         = document.getElementById('campo-note');
+    var btnRestituito     = document.getElementById('btn-restituito');
+    var feedback          = document.getElementById('res-feedback');
+
+    var indiceAttivo     = -1;
+    var libroSelezionato = null;
+
+    /* ─── Utilità ─────────────────────────────────────────────── */
+    function escHTML(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function evidenzia(testo, query) {
+      if (!query) return escHTML(testo);
+      var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      return escHTML(testo).replace(re, '<em class="autocomplete__em">$1</em>');
+    }
+
+    function formattaData(valore) {
+      if (!valore) return '—';
+      var d = new Date(valore);
+      if (isNaN(d.getTime())) return String(valore);
+      return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    function formattaTipo(tipo) {
+      var mappa = { breve: 'Prestito breve', standard: 'Prestito standard', lungo: 'Prestito lungo' };
+      return mappa[tipo] || tipo || '—';
+    }
+
+    /* ─── Filtra libri in prestito ────────────────────────────── */
+    function filtra(query) {
+      var q = query.trim().toLowerCase();
+      if (!q) return [];
+      var risultati = [];
+      for (var i = 0; i < LIBRI_IN_PRESTITO.length; i++) {
+        var libro = LIBRI_IN_PRESTITO[i];
+        if (libro.etichetta.toLowerCase().indexOf(q) !== -1 ||
+            libro.titolo.toLowerCase().indexOf(q) !== -1) {
+          risultati.push(libro);
+          if (risultati.length >= 30) break;
+        }
+      }
+      return risultati;
+    }
+
+    /* ─── Renderizza tendina ──────────────────────────────────── */
+    function renderTendina(risultati, query) {
+      listaSuggerimenti.innerHTML = '';
+      indiceAttivo = -1;
+
+      if (risultati.length === 0) {
+        nascondiTendina();
+        return;
+      }
+
+      var frammento = document.createDocumentFragment();
+      for (var i = 0; i < risultati.length; i++) {
+        (function (libro) {
+          var li = document.createElement('li');
+          li.className = 'autocomplete__voce';
+          li.setAttribute('role', 'option');
+          li.setAttribute('aria-selected', 'false');
+
+          li.innerHTML =
+            '<span class="autocomplete__voce-etichetta">' + evidenzia(libro.etichetta, query) + '</span>' +
+            '<span class="autocomplete__voce-titolo">'    + escHTML(libro.titolo) + '</span>' +
+            '<span class="autocomplete__voce-utente">'    + escHTML(libro.utente) + '</span>';
+
+          li.addEventListener('mousedown', function (ev) {
+            ev.preventDefault();
+            selezionaLibro(libro);
+          });
+
+          frammento.appendChild(li);
+        })(LIBRI_IN_PRESTITO[i]);
+      }
+
+      listaSuggerimenti.appendChild(frammento);
+      mostraTendina();
+    }
+
+    function mostraTendina() {
+      listaSuggerimenti.classList.add('autocomplete__lista--visibile');
+      campoEtichetta.setAttribute('aria-expanded', 'true');
+    }
+
+    function nascondiTendina() {
+      listaSuggerimenti.classList.remove('autocomplete__lista--visibile');
+      campoEtichetta.setAttribute('aria-expanded', 'false');
+      indiceAttivo = -1;
+    }
+
+    function aggiornaVoceAttiva(nuovoIndice) {
+      var voci = listaSuggerimenti.querySelectorAll('.autocomplete__voce');
+      if (voci[indiceAttivo]) {
+        voci[indiceAttivo].classList.remove('autocomplete__voce--attiva');
+        voci[indiceAttivo].setAttribute('aria-selected', 'false');
+      }
+      indiceAttivo = nuovoIndice;
+      if (voci[indiceAttivo]) {
+        voci[indiceAttivo].classList.add('autocomplete__voce--attiva');
+        voci[indiceAttivo].setAttribute('aria-selected', 'true');
+        voci[indiceAttivo].scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    /* ─── Seleziona libro ─────────────────────────────────────── */
+    function selezionaLibro(libro) {
+      libroSelezionato = libro;
+      campoEtichetta.value = libro.etichetta;
+      nascondiTendina();
+
+      /* Popola scheda */
+      document.getElementById('scheda-etichetta-label').textContent =
+        'Etichetta: ' + libro.etichetta;
+      document.getElementById('scheda-titolo').textContent =
+        libro.titolo + (libro.volume ? ' — vol. ' + libro.volume : '');
+      document.getElementById('scheda-autore').textContent =
+        libro.autore + (libro.coautore ? ' / ' + libro.coautore : '');
+      document.getElementById('scheda-utente').textContent = libro.utente || '—';
+      document.getElementById('scheda-data').textContent   = formattaData(libro.dataPrestito);
+      document.getElementById('scheda-tipo').textContent   = formattaTipo(libro.tipo);
+
+      /* Note precompilate */
+      campoNote.value = libro.note || '';
+
+      /* Mostra scheda */
+      schedaLibro.classList.remove('res-scheda--nascosta');
+      feedback.textContent = '';
+      feedback.className   = 'res-feedback';
+    }
+
+    /* ─── Reset ───────────────────────────────────────────────── */
+    function reset() {
+      libroSelezionato     = null;
+      campoEtichetta.value = '';
+      schedaLibro.classList.add('res-scheda--nascosta');
+      feedback.textContent = '';
+      feedback.className   = 'res-feedback';
+      campoEtichetta.focus();
+    }
+
+    btnChiudiScheda.addEventListener('click', reset);
+
+    /* ─── Event listener campo ricerca ───────────────────────── */
+    campoEtichetta.addEventListener('input', function () {
+      var query = campoEtichetta.value;
+      if (query.trim().length === 0) {
+        nascondiTendina();
+        return;
+      }
+      renderTendina(filtra(query), query.trim());
+    });
+
+    campoEtichetta.addEventListener('keydown', function (ev) {
+      var voci = listaSuggerimenti.querySelectorAll('.autocomplete__voce');
+      var visibile = listaSuggerimenti.classList.contains('autocomplete__lista--visibile');
+      if (!visibile) return;
+
+      if (ev.key === 'ArrowDown') {
+        ev.preventDefault();
+        aggiornaVoceAttiva(Math.min(indiceAttivo + 1, voci.length - 1));
+      } else if (ev.key === 'ArrowUp') {
+        ev.preventDefault();
+        aggiornaVoceAttiva(Math.max(indiceAttivo - 1, 0));
+      } else if (ev.key === 'Enter') {
+        ev.preventDefault();
+        if (indiceAttivo >= 0 && voci[indiceAttivo]) {
+          voci[indiceAttivo].dispatchEvent(new MouseEvent('mousedown'));
+        }
+      } else if (ev.key === 'Escape') {
+        nascondiTendina();
+      }
+    });
+
+    campoEtichetta.addEventListener('blur', function () {
+      setTimeout(nascondiTendina, 150);
+    });
+
+    /* ─── Registra restituzione ───────────────────────────────── */
+    btnRestituito.addEventListener('click', function () {
+      if (!libroSelezionato) return;
+
+      btnRestituito.disabled = true;
+      feedback.className     = 'res-feedback';
+      feedback.textContent   = 'Registrazione in corso…';
+
+      google.script.run
+        .withSuccessHandler(function (risultato) {
+          btnRestituito.disabled = false;
+          if (risultato.ok) {
+            feedback.className   = 'res-feedback res-feedback--ok';
+            feedback.textContent = '✓ Restituzione registrata.';
+
+            /* Rimuove il libro dall'array locale */
+            LIBRI_IN_PRESTITO = LIBRI_IN_PRESTITO.filter(function (l) {
+              return l.etichetta !== libroSelezionato.etichetta;
+            });
+
+            setTimeout(reset, 1800);
+          } else {
+            feedback.className   = 'res-feedback res-feedback--errore';
+            feedback.textContent = risultato.errore || 'Errore durante la registrazione.';
+          }
+        })
+        .withFailureHandler(function () {
+          btnRestituito.disabled = false;
+          feedback.className     = 'res-feedback res-feedback--errore';
+          feedback.textContent   = 'Errore di comunicazione con il server.';
+        })
+        .registraRestituzione({
+          etichetta: libroSelezionato.etichetta,
+          note:      campoNote.value.trim()
+        });
+    });
+
+  })();
+  </script>
+
+</body>

@@ -1,0 +1,521 @@
+<?!= include('head') ?>
+
+<body>
+
+  <?!= include('header') ?>
+
+  <main id="content">
+
+    <div class="imp-wrapper">
+
+      <h1 class="imp-titolo">Impostazioni</h1>
+
+      <!-- ─── Anno scolastico ─────────────────────────────────── -->
+      <section class="imp-sezione">
+        <h2 class="imp-sezione__titolo">Anno scolastico</h2>
+        <p class="imp-sezione__desc">
+          Anno di inizio dell'anno scolastico in corso (es. <code>2026</code>).
+          Viene usato per comporre il codice utente nei prestiti.
+        </p>
+        <input
+          type="text"
+          id="campo-anno"
+          class="imp-input"
+          maxlength="4"
+          placeholder="es. 2026"
+          aria-label="Anno scolastico"
+        />
+      </section>
+
+      <!-- ─── Durate prestito ─────────────────────────────────── -->
+      <section class="imp-sezione">
+        <h2 class="imp-sezione__titolo">Durate prestito</h2>
+        <p class="imp-sezione__desc">
+          Numero di giorni per ciascuna tipologia di prestito.
+          Usati per calcolare i ritardi in Gestione utenti.
+        </p>
+
+        <div class="imp-lista">
+          <div class="imp-voce">
+            <span class="imp-voce__label imp-voce__label--durata">Prestito breve</span>
+            <input
+              type="number"
+              id="campo-durata-breve"
+              class="imp-voce__input imp-voce__input--alunni"
+              min="1" max="365"
+              placeholder="es. 15"
+              aria-label="Durata prestito breve in giorni"
+            />
+            <span class="imp-voce__label">giorni</span>
+          </div>
+          <div class="imp-voce">
+            <span class="imp-voce__label imp-voce__label--durata">Prestito standard</span>
+            <input
+              type="number"
+              id="campo-durata-standard"
+              class="imp-voce__input imp-voce__input--alunni"
+              min="1" max="365"
+              placeholder="es. 30"
+              aria-label="Durata prestito standard in giorni"
+            />
+            <span class="imp-voce__label">giorni</span>
+          </div>
+          <div class="imp-voce">
+            <span class="imp-voce__label imp-voce__label--durata">Prestito lungo</span>
+            <input
+              type="number"
+              id="campo-durata-lungo"
+              class="imp-voce__input imp-voce__input--alunni"
+              min="1" max="365"
+              placeholder="es. 60"
+              aria-label="Durata prestito lungo in giorni"
+            />
+            <span class="imp-voce__label">giorni</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── Classi ──────────────────────────────────────────── -->
+      <section class="imp-sezione">
+        <h2 class="imp-sezione__titolo">Classi</h2>
+        <p class="imp-sezione__desc">
+          Per ogni classe: nome breve (es. <code>2E</code>) e numero di alunni.
+        </p>
+
+        <div id="lista-classi" class="imp-lista"></div>
+
+        <button class="imp-btn imp-btn--secondario" id="btn-aggiungi-classe">
+          + Aggiungi classe
+        </button>
+      </section>
+
+      <!-- ─── Scaffali ─────────────────────────────────────────── -->
+      <section class="imp-sezione">
+        <h2 class="imp-sezione__titolo">Scaffali</h2>
+        <p class="imp-sezione__desc">
+          Formato: <code>codice - nome</code> (es. <code>85 - Avventura</code>).
+        </p>
+
+        <div id="lista-scaffali" class="imp-lista"></div>
+
+        <button class="imp-btn imp-btn--secondario" id="btn-aggiungi-scaffale">
+          + Aggiungi scaffale
+        </button>
+      </section>
+
+      <!-- ─── Pulsante salva ───────────────────────────────────── -->
+      <div class="imp-azioni">
+        <button class="imp-btn imp-btn--primario" id="btn-salva">
+          Salva impostazioni
+        </button>
+        <span class="imp-feedback" id="imp-feedback" aria-live="polite"></span>
+      </div>
+
+    </div> <!-- fine imp-wrapper -->
+
+  </main>
+
+  <?!= include('footer') ?>
+
+  <!-- Dati impostazioni iniettati server-side -->
+  <script>
+    var IMPOSTAZIONI = <?!= JSON.stringify(datiImpostazioni) ?>;
+  </script>
+
+  <style>
+    /* ─── Impostazioni — layout ───────────────────────────────── */
+    .imp-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .imp-titolo {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-lg);
+    }
+
+    .imp-sezione {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-md);
+    }
+
+    .imp-sezione__titolo {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .imp-sezione__desc {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-md);
+      line-height: 1.6;
+    }
+
+    .imp-sezione__desc code {
+      background: var(--color-surface-alt);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 1px 5px;
+      font-size: var(--text-xs);
+      color: var(--color-brand);
+    }
+
+    /* ─── Input testo ─────────────────────────────────────────── */
+    .imp-input {
+      width: 100%;
+      max-width: 200px;
+      padding: var(--space-xs) var(--space-sm);
+      font-family: var(--font-ui);
+      font-size: var(--text-base);
+      color: var(--color-text-primary);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .imp-input:focus {
+      border-color: var(--color-border-focus);
+      box-shadow: var(--shadow-focus);
+    }
+
+    /* ─── Lista voci dinamiche ────────────────────────────────── */
+    .imp-lista {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-md);
+    }
+
+    .imp-voce {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+
+    .imp-voce__input {
+      padding: var(--space-xs) var(--space-sm);
+      font-family: var(--font-ui);
+      font-size: var(--text-sm);
+      color: var(--color-text-primary);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .imp-voce__input:focus {
+      border-color: var(--color-border-focus);
+      box-shadow: var(--shadow-focus);
+    }
+
+    .imp-voce__input--nome {
+      width: 100px;
+    }
+
+    .imp-voce__input--alunni {
+      width: 80px;
+    }
+
+    .imp-voce__input--scaffale {
+      width: 280px;
+    }
+
+    .imp-voce__label {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      white-space: nowrap;
+    }
+
+    .imp-voce__label--durata {
+      min-width: 140px;
+      color: var(--color-text-secondary);
+      font-weight: 600;
+    }
+
+    .imp-voce__rimuovi {
+      background: none;
+      border: none;
+      color: var(--color-action-danger);
+      font-size: var(--text-base);
+      cursor: pointer;
+      padding: 2px var(--space-xs);
+      border-radius: var(--radius-sm);
+      line-height: 1;
+      transition: background 0.12s;
+    }
+
+    .imp-voce__rimuovi:hover {
+      background: #fdecea;
+    }
+
+    /* ─── Pulsanti ────────────────────────────────────────────── */
+    .imp-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: var(--space-xs) var(--space-md);
+      font-family: var(--font-ui);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+      outline: none;
+    }
+
+    .imp-btn:focus-visible {
+      box-shadow: var(--shadow-focus);
+    }
+
+    .imp-btn--primario {
+      background: var(--color-action-primary);
+      color: var(--color-text-on-brand);
+    }
+
+    .imp-btn--primario:hover {
+      background: var(--color-action-primary-hover);
+    }
+
+    .imp-btn--secondario {
+      background: var(--color-surface-alt);
+      color: var(--color-text-secondary);
+      border: 1px solid var(--color-border);
+    }
+
+    .imp-btn--secondario:hover {
+      background: var(--color-brand-light);
+      color: var(--color-brand);
+      border-color: var(--color-brand);
+    }
+
+    /* ─── Azioni e feedback ───────────────────────────────────── */
+    .imp-azioni {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+
+    .imp-feedback {
+      font-size: var(--text-sm);
+      font-weight: 600;
+    }
+
+    .imp-feedback--ok {
+      color: var(--color-action-success);
+    }
+
+    .imp-feedback--errore {
+      color: var(--color-action-danger);
+    }
+  </style>
+
+  <?!= include('script') ?>
+
+  <script>
+  /* ═══════════════════════════════════════════════════════════════════
+     impostazioni.html — JavaScript lato client
+  ════════════════════════════════════════════════════════════════════ */
+
+  (function () {
+    'use strict';
+
+    /* ─── Riferimenti DOM ─────────────────────────────────────── */
+    var campoAnno            = document.getElementById('campo-anno');
+    var campoDurataBreve     = document.getElementById('campo-durata-breve');
+    var campoDurataStandard  = document.getElementById('campo-durata-standard');
+    var campoDurataLungo     = document.getElementById('campo-durata-lungo');
+    var listaClassi          = document.getElementById('lista-classi');
+    var listaScaffali        = document.getElementById('lista-scaffali');
+    var btnAggiungiClasse    = document.getElementById('btn-aggiungi-classe');
+    var btnAggiungiScaffale  = document.getElementById('btn-aggiungi-scaffale');
+    var btnSalva             = document.getElementById('btn-salva');
+    var feedback             = document.getElementById('imp-feedback');
+
+    /* ─── Popola i campi con i dati esistenti ─────────────────── */
+    function inizializza() {
+      campoAnno.value = IMPOSTAZIONI.anno || '';
+
+      /* Durate */
+      var durate = IMPOSTAZIONI.durate || {};
+      campoDurataBreve.value    = durate.breve    || '';
+      campoDurataStandard.value = durate.standard || '';
+      campoDurataLungo.value    = durate.lungo     || '';
+
+      /* Classi */
+      listaClassi.innerHTML = '';
+      var classi = IMPOSTAZIONI.classi || [];
+      for (var i = 0; i < classi.length; i++) {
+        aggiungiRigaClasse(classi[i].nome, classi[i].alunni);
+      }
+
+      /* Scaffali */
+      listaScaffali.innerHTML = '';
+      var scaffali = IMPOSTAZIONI.scaffali || [];
+      for (var j = 0; j < scaffali.length; j++) {
+        aggiungiRigaScaffale(scaffali[j]);
+      }
+    }
+
+    /* ─── Riga classe ─────────────────────────────────────────── */
+    function aggiungiRigaClasse(nome, alunni) {
+      var div = document.createElement('div');
+      div.className = 'imp-voce';
+
+      var inputNome = document.createElement('input');
+      inputNome.type        = 'text';
+      inputNome.className   = 'imp-voce__input imp-voce__input--nome';
+      inputNome.placeholder = 'es. 2E';
+      inputNome.maxLength   = 10;
+      inputNome.value       = nome || '';
+      inputNome.setAttribute('aria-label', 'Nome classe');
+
+      var labelAlunni = document.createElement('span');
+      labelAlunni.className   = 'imp-voce__label';
+      labelAlunni.textContent = 'alunni:';
+
+      var inputAlunni = document.createElement('input');
+      inputAlunni.type        = 'number';
+      inputAlunni.className   = 'imp-voce__input imp-voce__input--alunni';
+      inputAlunni.min         = '1';
+      inputAlunni.max         = '99';
+      inputAlunni.placeholder = 'es. 25';
+      inputAlunni.value       = alunni || '';
+      inputAlunni.setAttribute('aria-label', 'Numero alunni');
+
+      var btnRimuovi = document.createElement('button');
+      btnRimuovi.className   = 'imp-voce__rimuovi';
+      btnRimuovi.textContent = '✕';
+      btnRimuovi.setAttribute('aria-label', 'Rimuovi classe');
+      btnRimuovi.addEventListener('click', function () {
+        listaClassi.removeChild(div);
+      });
+
+      div.appendChild(inputNome);
+      div.appendChild(labelAlunni);
+      div.appendChild(inputAlunni);
+      div.appendChild(btnRimuovi);
+      listaClassi.appendChild(div);
+    }
+
+    /* ─── Riga scaffale ───────────────────────────────────────── */
+    function aggiungiRigaScaffale(valore) {
+      var div = document.createElement('div');
+      div.className = 'imp-voce';
+
+      var inputScaffale = document.createElement('input');
+      inputScaffale.type        = 'text';
+      inputScaffale.className   = 'imp-voce__input imp-voce__input--scaffale';
+      inputScaffale.placeholder = 'es. 85 - Avventura';
+      inputScaffale.value       = valore || '';
+      inputScaffale.setAttribute('aria-label', 'Scaffale');
+
+      var btnRimuovi = document.createElement('button');
+      btnRimuovi.className   = 'imp-voce__rimuovi';
+      btnRimuovi.textContent = '✕';
+      btnRimuovi.setAttribute('aria-label', 'Rimuovi scaffale');
+      btnRimuovi.addEventListener('click', function () {
+        listaScaffali.removeChild(div);
+      });
+
+      div.appendChild(inputScaffale);
+      div.appendChild(btnRimuovi);
+      listaScaffali.appendChild(div);
+    }
+
+    /* ─── Leggi i valori correnti dal DOM ─────────────────────── */
+    function raccogliDati() {
+      var anno = campoAnno.value.trim();
+
+      /* Durate */
+      var durate = {
+        breve:    parseInt(campoDurataBreve.value,    10) || 0,
+        standard: parseInt(campoDurataStandard.value, 10) || 0,
+        lungo:    parseInt(campoDurataLungo.value,    10) || 0
+      };
+
+      /* Classi */
+      var classi = [];
+      var righeClassi = listaClassi.querySelectorAll('.imp-voce');
+      for (var i = 0; i < righeClassi.length; i++) {
+        var inputs = righeClassi[i].querySelectorAll('input');
+        var nomeClasse = inputs[0].value.trim();
+        var numAlunni  = parseInt(inputs[1].value, 10);
+        if (nomeClasse) {
+          classi.push({
+            nome:   nomeClasse,
+            alunni: isNaN(numAlunni) ? 0 : numAlunni
+          });
+        }
+      }
+
+      /* Scaffali */
+      var scaffali = [];
+      var righeScaffali = listaScaffali.querySelectorAll('.imp-voce');
+      for (var j = 0; j < righeScaffali.length; j++) {
+        var valoreScaffale = righeScaffali[j].querySelector('input').value.trim();
+        if (valoreScaffale) {
+          scaffali.push(valoreScaffale);
+        }
+      }
+
+      return { anno: anno, durate: durate, classi: classi, scaffali: scaffali };
+    }
+
+    /* ─── Salva ───────────────────────────────────────────────── */
+    function mostraFeedback(ok) {
+      feedback.className   = 'imp-feedback ' + (ok ? 'imp-feedback--ok' : 'imp-feedback--errore');
+      feedback.textContent = ok ? '✓ Impostazioni salvate.' : '✗ Errore durante il salvataggio.';
+      setTimeout(function () {
+        feedback.textContent = '';
+        feedback.className   = 'imp-feedback';
+      }, 4000);
+    }
+
+    btnSalva.addEventListener('click', function () {
+      btnSalva.disabled    = true;
+      feedback.className   = 'imp-feedback';
+      feedback.textContent = 'Salvataggio in corso…';
+
+      var dati = raccogliDati();
+
+      google.script.run
+        .withSuccessHandler(function (ok) {
+          btnSalva.disabled = false;
+          mostraFeedback(ok);
+        })
+        .withFailureHandler(function () {
+          btnSalva.disabled = false;
+          mostraFeedback(false);
+        })
+        .salvaImpostazioni(dati);
+    });
+
+    /* ─── Pulsanti aggiungi ───────────────────────────────────── */
+    btnAggiungiClasse.addEventListener('click', function () {
+      aggiungiRigaClasse('', '');
+    });
+
+    btnAggiungiScaffale.addEventListener('click', function () {
+      aggiungiRigaScaffale('');
+    });
+
+    /* ─── Avvio ───────────────────────────────────────────────── */
+    inizializza();
+
+  })();
+  </script>
+
+</body>

@@ -1,0 +1,56 @@
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   BIBLIOTECA TEMPLATE — script.html
+   JavaScript lato client. Incluso in ogni pagina tramite:
+   <?!= include('script') ?>
+════════════════════════════════════════════════════════════════════ */
+
+(function () {
+  'use strict';
+
+  /* ─── Tendina di navigazione ──────────────────────────────────── */
+
+  /**
+   * Inizializza la tendina di navigazione.
+   * L'header è già nel DOM quando questo script viene eseguito.
+   */
+  function inizializzaTendina() {
+    var tendina  = document.getElementById('tendina-nav');
+    var trigger  = document.getElementById('trigger-nav');
+    var pannello = document.getElementById('pannello-nav');
+
+    if (!tendina || !trigger || !pannello) return;
+
+    function impostaAperta(aperta) {
+      tendina.classList.toggle('nav-tendina--aperta', aperta);
+      trigger.setAttribute('aria-expanded', String(aperta));
+    }
+
+    /* Click sul trigger */
+    trigger.addEventListener('click', function () {
+      var eraAperta = tendina.classList.contains('nav-tendina--aperta');
+      impostaAperta(!eraAperta);
+    });
+
+    /* Chiude cliccando fuori */
+    document.addEventListener('click', function (evento) {
+      if (!tendina.contains(evento.target)) {
+        impostaAperta(false);
+      }
+    });
+
+    /* Chiude con Escape */
+    document.addEventListener('keydown', function (evento) {
+      if (evento.key === 'Escape') {
+        impostaAperta(false);
+        trigger.focus();
+      }
+    });
+  }
+
+  /* ─── Avvio ───────────────────────────────────────────────────── */
+
+  inizializzaTendina();
+
+})();
+</script>

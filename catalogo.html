@@ -1,0 +1,534 @@
+<?!= include('head') ?>
+
+<body>
+
+  <?!= include('header') ?>
+
+  <main id="content">
+
+    <div class="catalogo-wrapper">
+
+    <h1 class="catalogo-titolo">Catalogo</h1>
+
+    <!-- Campo di ricerca -->
+    <div class="catalogo-ricerca">
+      <div class="autocomplete" id="autocomplete-wrapper">
+        <input
+          type="text"
+          id="campo-ricerca"
+          class="catalogo-ricerca__input"
+          placeholder="Cerca per titolo o autore…"
+          autocomplete="off"
+          aria-label="Cerca un libro per titolo o autore"
+          aria-autocomplete="list"
+          aria-controls="lista-suggerimenti"
+          aria-expanded="false"
+        />
+        <ul
+          id="lista-suggerimenti"
+          class="autocomplete__lista"
+          role="listbox"
+          aria-label="Suggerimenti"
+        ></ul>
+      </div>
+    </div>
+
+    <!-- Scheda dettaglio libro (nascosta finché non si seleziona un risultato) -->
+    <div id="scheda-libro" class="scheda-libro scheda-libro--nascosta" aria-live="polite">
+      <div class="scheda-libro__intestazione">
+        <div class="scheda-libro__etichetta-wrap">
+          <span class="scheda-libro__etichetta">Etichetta: <span id="scheda-etichetta"></span></span>
+          <span id="scheda-badge-prestito" class="scheda-libro__badge scheda-libro__badge--prestito scheda-libro__badge--nascosta">
+            In prestito
+          </span>
+        </div>
+        <button
+          class="scheda-libro__chiudi"
+          id="btn-chiudi-scheda"
+          aria-label="Chiudi scheda"
+        >✕</button>
+      </div>
+
+      <h2 class="scheda-libro__titolo" id="scheda-titolo"></h2>
+      <p  class="scheda-libro__autore" id="scheda-autore"></p>
+
+      <dl class="scheda-libro__dettagli">
+        <div class="scheda-libro__riga" id="riga-volume">
+          <dt class="scheda-libro__dt">Volume</dt>
+          <dd class="scheda-libro__dd" id="scheda-volume"></dd>
+        </div>
+        <div class="scheda-libro__riga" id="riga-coautore">
+          <dt class="scheda-libro__dt">Coautore</dt>
+          <dd class="scheda-libro__dd" id="scheda-coautore"></dd>
+        </div>
+        <div class="scheda-libro__riga" id="riga-scaffale">
+          <dt class="scheda-libro__dt">Scaffale</dt>
+          <dd class="scheda-libro__dd" id="scheda-scaffale"></dd>
+        </div>
+        <div class="scheda-libro__riga" id="riga-genere">
+          <dt class="scheda-libro__dt">Genere</dt>
+          <dd class="scheda-libro__dd" id="scheda-genere"></dd>
+        </div>
+        <div class="scheda-libro__riga" id="riga-note">
+          <dt class="scheda-libro__dt">Note</dt>
+          <dd class="scheda-libro__dd" id="scheda-note"></dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- Contatore risultati -->
+    <p class="catalogo-contatore" id="catalogo-contatore" aria-live="polite"></p>
+
+    </div> <!-- fine catalogo-wrapper -->
+
+  </main>
+
+  <?!= include('footer') ?>
+
+  <!-- Dati iniettati server-side una sola volta al caricamento -->
+  <script>
+    var CATALOGO = <?!= JSON.stringify(datiCatalogo) ?>;
+  </script>
+
+  <style>
+    /* ─── Catalogo — ricerca ──────────────────────────────────── */
+    .catalogo-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .catalogo-titolo {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-md);
+    }
+
+    .catalogo-ricerca {
+      margin-bottom: var(--space-md);
+    }
+
+    .catalogo-ricerca__input {
+      width: 100%;
+      padding: var(--space-sm) var(--space-md);
+      font-family: var(--font-ui);
+      font-size: var(--text-base);
+      color: var(--color-text-primary);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .catalogo-ricerca__input:focus {
+      border-color: var(--color-border-focus);
+      box-shadow: var(--shadow-focus);
+    }
+
+    /* ─── Autocomplete ────────────────────────────────────────── */
+    .autocomplete {
+      position: relative;
+    }
+
+    .autocomplete__lista {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+      list-style: none;
+      max-height: 320px;
+      overflow-y: auto;
+      z-index: 200;
+      display: none;
+    }
+
+    .autocomplete__lista--visibile {
+      display: block;
+    }
+
+    .autocomplete__voce {
+      padding: var(--space-xs) var(--space-md);
+      font-size: var(--text-sm);
+      color: var(--color-text-primary);
+      cursor: pointer;
+      border-bottom: 1px solid var(--color-border);
+      line-height: 1.5;
+    }
+
+    .autocomplete__voce:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete__voce:hover,
+    .autocomplete__voce--attiva {
+      background: var(--color-brand-light);
+      color: var(--color-brand);
+    }
+
+    .autocomplete__voce-titolo {
+      display: block;
+      font-weight: 600;
+    }
+
+    .autocomplete__voce-autore {
+      display: block;
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+
+    .autocomplete__em {
+      background: #fff3cd;
+      border-radius: 2px;
+      font-style: normal;
+    }
+
+    /* ─── Scheda libro ────────────────────────────────────────── */
+    .scheda-libro {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: var(--space-lg);
+      max-width: 640px;
+      margin-bottom: var(--space-md);
+    }
+
+    .scheda-libro--nascosta {
+      display: none;
+    }
+
+    .scheda-libro__intestazione {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-sm);
+    }
+
+    .scheda-libro__etichetta-wrap {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      flex-wrap: wrap;
+    }
+
+    .scheda-libro__etichetta {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .scheda-libro__badge {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      padding: 2px var(--space-xs);
+      border-radius: var(--radius-sm);
+    }
+
+    .scheda-libro__badge--prestito {
+      background: #fff3e0;
+      color: var(--color-action-warning);
+      border: 1px solid #ffe0b2;
+    }
+
+    .scheda-libro__badge--nascosta {
+      display: none;
+    }
+
+    .scheda-libro__chiudi {
+      background: none;
+      border: none;
+      font-size: var(--text-base);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      padding: 2px var(--space-xs);
+      border-radius: var(--radius-sm);
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .scheda-libro__chiudi:hover {
+      background: var(--color-surface-alt);
+      color: var(--color-text-primary);
+    }
+
+    .scheda-libro__titolo {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-xs);
+      line-height: 1.3;
+    }
+
+    .scheda-libro__autore {
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-md);
+    }
+
+    .scheda-libro__dettagli {
+      display: grid;
+      gap: var(--space-xs);
+    }
+
+    .scheda-libro__riga {
+      display: flex;
+      gap: var(--space-sm);
+      font-size: var(--text-sm);
+    }
+
+    .scheda-libro__dt {
+      color: var(--color-text-muted);
+      min-width: 80px;
+      flex-shrink: 0;
+    }
+
+    .scheda-libro__dd {
+      color: var(--color-text-primary);
+    }
+
+    /* ─── Contatore ───────────────────────────────────────────── */
+    .catalogo-contatore {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      margin-top: var(--space-xs);
+    }
+  </style>
+
+  <?!= include('script') ?>
+
+  <script>
+  /* ═══════════════════════════════════════════════════════════════════
+     catalogo.html — JavaScript lato client
+     Ricerca e autocompletamento sul catalogo iniettato server-side.
+  ════════════════════════════════════════════════════════════════════ */
+
+  (function () {
+    'use strict';
+
+    /* ─── Riferimenti DOM ─────────────────────────────────────── */
+    var campoRicerca     = document.getElementById('campo-ricerca');
+    var listaSuggerimenti = document.getElementById('lista-suggerimenti');
+    var schedaLibro      = document.getElementById('scheda-libro');
+    var contatore        = document.getElementById('catalogo-contatore');
+    var btnChiudi        = document.getElementById('btn-chiudi-scheda');
+
+    var indiceAttivo = -1;  /* indice voce evidenziata nella tendina */
+
+    /* ─── Utilità: evidenzia testo corrispondente ─────────────── */
+    function evidenzia(testo, query) {
+      if (!query) return escHTML(testo);
+      var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      return escHTML(testo).replace(re, '<em class="autocomplete__em">$1</em>');
+    }
+
+    function escHTML(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    /* ─── Filtra catalogo ─────────────────────────────────────── */
+    function filtra(query) {
+      var q = query.trim().toLowerCase();
+      if (!q) return [];
+
+      var risultati = [];
+      for (var i = 0; i < CATALOGO.length; i++) {
+        var libro = CATALOGO[i];
+        var haystack = (libro.titolo + ' ' + libro.autore + ' ' + libro.coautore).toLowerCase();
+        if (haystack.indexOf(q) !== -1) {
+          risultati.push(libro);
+        }
+        if (risultati.length >= 50) break; /* limite ragionevole */
+      }
+      return risultati;
+    }
+
+    /* ─── Renderizza la tendina ───────────────────────────────── */
+    function renderTendina(risultati, query) {
+      listaSuggerimenti.innerHTML = '';
+      indiceAttivo = -1;
+
+      if (risultati.length === 0) {
+        nascondiTendina();
+        contatore.textContent = 'Nessun risultato.';
+        return;
+      }
+
+      contatore.textContent = risultati.length === 1
+        ? '1 risultato'
+        : risultati.length + ' risultati';
+
+      var frammento = document.createDocumentFragment();
+
+      for (var i = 0; i < risultati.length; i++) {
+        (function (libro) {
+          var li = document.createElement('li');
+          li.className   = 'autocomplete__voce';
+          li.setAttribute('role', 'option');
+          li.setAttribute('aria-selected', 'false');
+
+          var titoloStr = libro.titolo + (libro.volume ? ' — vol. ' + libro.volume : '');
+          var autoreStr = libro.autore + (libro.coautore ? ' / ' + libro.coautore : '');
+
+          li.innerHTML =
+            '<span class="autocomplete__voce-titolo">' + evidenzia(titoloStr, query) + '</span>' +
+            '<span class="autocomplete__voce-autore">'  + evidenzia(autoreStr, query) + '</span>';
+
+          li.addEventListener('mousedown', function (ev) {
+            /* mousedown anziché click: evita che il blur sul campo
+               chiuda la tendina prima del click */
+            ev.preventDefault();
+            seleziona(libro);
+          });
+
+          frammento.appendChild(li);
+        })(risultati[i]);
+      }
+
+      listaSuggerimenti.appendChild(frammento);
+      mostraTendina();
+    }
+
+    /* ─── Mostra / nasconde tendina ───────────────────────────── */
+    function mostraTendina() {
+      listaSuggerimenti.classList.add('autocomplete__lista--visibile');
+      campoRicerca.setAttribute('aria-expanded', 'true');
+    }
+
+    function nascondiTendina() {
+      listaSuggerimenti.classList.remove('autocomplete__lista--visibile');
+      campoRicerca.setAttribute('aria-expanded', 'false');
+      indiceAttivo = -1;
+    }
+
+    /* ─── Navigazione tastiera nella tendina ──────────────────── */
+    function aggiornaVoceAttiva(nuovoIndice) {
+      var voci = listaSuggerimenti.querySelectorAll('.autocomplete__voce');
+      if (voci[indiceAttivo]) {
+        voci[indiceAttivo].classList.remove('autocomplete__voce--attiva');
+        voci[indiceAttivo].setAttribute('aria-selected', 'false');
+      }
+      indiceAttivo = nuovoIndice;
+      if (voci[indiceAttivo]) {
+        voci[indiceAttivo].classList.add('autocomplete__voce--attiva');
+        voci[indiceAttivo].setAttribute('aria-selected', 'true');
+        voci[indiceAttivo].scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    /* ─── Seleziona un libro ──────────────────────────────────── */
+    function seleziona(libro) {
+      campoRicerca.value = libro.titolo + (libro.volume ? ' — vol. ' + libro.volume : '');
+      nascondiTendina();
+      contatore.textContent = '';
+      mostraScheda(libro);
+    }
+
+    /* ─── Renderizza la scheda dettaglio ──────────────────────── */
+    function mostraScheda(libro) {
+      document.getElementById('scheda-etichetta').textContent  = libro.etichetta;
+      document.getElementById('scheda-titolo').textContent     = libro.titolo + (libro.volume ? ' — vol. ' + libro.volume : '');
+      document.getElementById('scheda-autore').textContent     = libro.autore + (libro.coautore ? ' / ' + libro.coautore : '');
+
+      impostaRiga('riga-volume',   'scheda-volume',   libro.volume);
+      impostaRiga('riga-coautore', 'scheda-coautore', libro.coautore);
+      impostaRiga('riga-scaffale', 'scheda-scaffale', libro.scaffale);
+      impostaRiga('riga-genere',   'scheda-genere',   libro.genere);
+      impostaRiga('riga-note',     'scheda-note',     libro.note);
+
+      var badge = document.getElementById('scheda-badge-prestito');
+      if (libro.inPrestito) {
+        badge.classList.remove('scheda-libro__badge--nascosta');
+      } else {
+        badge.classList.add('scheda-libro__badge--nascosta');
+      }
+
+      schedaLibro.classList.remove('scheda-libro--nascosta');
+      schedaLibro.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    /* Mostra la riga solo se il valore è presente */
+    function impostaRiga(idRiga, idDd, valore) {
+      var riga = document.getElementById(idRiga);
+      var dd   = document.getElementById(idDd);
+      if (valore) {
+        dd.textContent = valore;
+        riga.style.display = '';
+      } else {
+        riga.style.display = 'none';
+      }
+    }
+
+    function nascondiScheda() {
+      schedaLibro.classList.add('scheda-libro--nascosta');
+    }
+
+    /* ─── Event listener: campo di ricerca ────────────────────── */
+    campoRicerca.addEventListener('input', function () {
+      var query = campoRicerca.value;
+      if (query.trim().length === 0) {
+        nascondiTendina();
+        nascondiScheda();
+        contatore.textContent = '';
+        return;
+      }
+      var risultati = filtra(query);
+      renderTendina(risultati, query.trim());
+    });
+
+    campoRicerca.addEventListener('keydown', function (ev) {
+      var voci = listaSuggerimenti.querySelectorAll('.autocomplete__voce');
+      var visibile = listaSuggerimenti.classList.contains('autocomplete__lista--visibile');
+
+      if (!visibile) return;
+
+      if (ev.key === 'ArrowDown') {
+        ev.preventDefault();
+        aggiornaVoceAttiva(Math.min(indiceAttivo + 1, voci.length - 1));
+      } else if (ev.key === 'ArrowUp') {
+        ev.preventDefault();
+        aggiornaVoceAttiva(Math.max(indiceAttivo - 1, 0));
+      } else if (ev.key === 'Enter') {
+        ev.preventDefault();
+        if (indiceAttivo >= 0 && voci[indiceAttivo]) {
+          voci[indiceAttivo].dispatchEvent(new MouseEvent('mousedown'));
+        }
+      } else if (ev.key === 'Escape') {
+        nascondiTendina();
+        nascondiScheda();
+        campoRicerca.value = '';
+        contatore.textContent = '';
+      }
+    });
+
+    campoRicerca.addEventListener('blur', function () {
+      /* Piccolo ritardo per non chiudere prima del mousedown sulla voce */
+      setTimeout(nascondiTendina, 150);
+    });
+
+    /* ─── Chiudi scheda ───────────────────────────────────────── */
+    btnChiudi.addEventListener('click', function () {
+      nascondiScheda();
+      campoRicerca.value = '';
+      contatore.textContent = '';
+      campoRicerca.focus();
+    });
+
+    /* ─── Contatore iniziale ──────────────────────────────────── */
+    contatore.textContent = CATALOGO.length + ' libri in catalogo';
+
+  })();
+  </script>
+
+</body>
