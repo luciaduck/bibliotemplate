@@ -1,4 +1,4 @@
-# Bibliotemplate
+# bibliotemplate
 
 > Un gestionale per biblioteche scolastiche, pensato per le scuole che usano Google Workspace. Ideato per rispettare il principio di minimizzazione dei dati e i requisiti della legge Stanca.
 
@@ -24,7 +24,7 @@ WIP
 
 ### Requisiti
 
-> Placeholder, ma comunque: Google workplace basta e avanza. Per l'installazione rapida tramite terminale sono necessari node 24.20.0 e clasp 3.4.1 o superiori.
+> Placeholder, ma comunque: Google workspace basta e avanza. Per l'installazione rapida tramite terminale sono necessari node 24.20.0 e clasp 3.4.1 o superiori.
 
 ## Come si configura il programma
 
