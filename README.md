@@ -1,3 +1,5 @@
+🇮🇹 **[Clicca qui per la documentazione in italiano (LEGGIMI.md)](LEGGIMI.md)**
+
 **WIP:** This software was originally developed *pro bono* for a school and is currently undergoing revision. **I do not recommend using or deploying it** while this notice is visible.
 
 # bibliotemplate
